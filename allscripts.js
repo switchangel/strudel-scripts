@@ -2,9 +2,9 @@ register('o', (orbit, pat) => pat.orbit(orbit))
 samples('http://localhost:5432')
 setCpm(140 / 4)
 
+// setGainCurve(x => x**2)
 setGainCurve(x => Math.pow(x, 2))
 
-// setGainCurve(x => x**2)
 function blockArrange(patArr, modifiers = []) {
   return stack(
     ...patArr.map(([pat, maskPat]) => {
@@ -99,8 +99,7 @@ register('grab', function (scale, pat) {
     let note = isObject ? hap.value.n : hap.value;
     if (typeof note === 'number') {
       note = note;
-    }
-    if (typeof note === 'string') {
+    } else if (typeof note === 'string') {
       note = noteToMidi(note);
     }
 
