@@ -1,9 +1,8 @@
+
 // tb303 style filter envelope control between 0 & 1 values for useful range
 register('acidenv', (x, pat) => pat.lpf(100)
   .lpenv(x * 9).lps(.2).lpd(.12).lpq(2)
 )
-
-setCpm(140 / 4)
 
 setGainCurve(x => Math.pow(x, 2))
 
@@ -88,6 +87,11 @@ register('fill', function (pat) {
 
 register('trancegate', (density, seed, length, x) => {
   return x.struct(rand.mul(density).round().seg(16).rib(seed, length)).fill().clip(.7)
+})
+
+register('colorparty', (p, pat) => {
+ const colors = ['blue', 'yellow', 'violet', 'green', 'orange', 'cyan', 'magenta', 'white']
+   return pat.color(colors.at(Math.floor(p * colors.length)))
 })
 
 // quantize notes to given values: pat.grab("e:f#:c")

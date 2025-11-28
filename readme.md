@@ -1,0 +1,1 @@
+to use these custom functions, load them in the strudel editor, or upload the .strudel file into the strudel settings prebake section.
