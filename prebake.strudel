@@ -1,4 +1,3 @@
-
 // tb303 style filter envelope control between 0 & 1 values for useful range
 register('acidenv', (x, pat) => pat.lpf(100)
   .lpenv(x * 9).lps(.2).lpd(.12).lpq(2)
@@ -27,18 +26,16 @@ window.track = function(...input) {
 
       const pats = []
       str.split(/-+/).forEach((val, index) => {
-        if (val == false ){
-        return
+        if (!val) {
+          return
         }
         let newPat = patterns.at(index)
-         mods?.forEach(([mod, callback]) => {
-            if (val != mod) {
-              return
-            }
+        mods?.forEach(([mod, callback]) => {
+          if (val == mod) {
             newPat = callback(newPat)
-         })
-        
-          pats.push(newPat)
+          }  
+        })
+        pats.push(newPat)
       })
       return stack(...pats)
     });
