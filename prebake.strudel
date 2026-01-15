@@ -156,6 +156,12 @@ register('fill', function (pat) {
       // Find the next onset, to use as an offset
       const next = onsets.find(onset => onset.gte(hap.whole.end));
 
+      // If there is no next onset, the query window is not large enough.
+      // We bail out to avoid a crash.
+      if (next === undefined) {
+        continue;
+      }
+
       // Ignore if the part ended before the original query, and hasn't expanded inside
       if (next.lte(state.span.begin)) {
         continue;
