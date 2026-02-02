@@ -1,3 +1,13 @@
+//TODO: find a better way to do this
+window.registerFunc = (name, func) => {
+  //ensures it will work in mondo notation
+  strudelScope[name] = func
+  //ensures it will work in mini notation
+  window[name] = func
+}
+
+window.DX = (env=8, fm = 2, harm = 2) => s("sine")
+  .fm(fm).fmenv(env).fmh(harm).fmdecay(.2)
 
 // tb303 style filter envelope control between 0 & 1 values for useful range
 register('acidenv', (x, pat) => pat.lpf(100)
@@ -5,6 +15,7 @@ register('acidenv', (x, pat) => pat.lpf(100)
 )
 
 setGainCurve(x => Math.pow(x, 2))
+
 
 
 //tracker style arrangement
@@ -171,7 +182,14 @@ register('fill', function (pat) {
 });
 
 register('trancegate', (density, seed, length, x) => {
+  density = reify(density).add(.5)
   return x.struct(rand.mul(density).round().seg(16).rib(seed, length)).fill().clip(.7)
+})
+
+//increasing the delay increases the feedback as well
+register('dly', (amt, x) =>{ 
+  amt = reify(amt)
+  return  x.delay(amt.mul(.8)).delayfeedback(amt.pow(2)).mask(amt.floor().inv()) 
 })
 
 register('colorparty', (p, pat) => {
@@ -452,8 +470,7 @@ register('sf', (cycles,x) => {
 
 /* swap one value with another
 @example
-s("bd bd sd bd".fast(4).swap("bd", "<lt bd:3>").swap("sd", "hh sd:2"))
-
+ s("bd bd sd bd".fast(4).swap("bd", "<lt bd:3>").swap("sd", "hh sd:2"))
  */
 register('swap', (find, rep, x) => {
   return x.withValue(v => {
@@ -463,6 +480,74 @@ register('swap', (find, rep, x) => {
     return v
   })
 })
+
+/*
+@example
+$: s("piano").over(
+  n("<0 3 2 1 5>*8"),
+  n("<-5 -2 -3 -4 0>*2")
+).scale("g:major:pentatonic")
+*/
+Pattern.prototype.over = function(...inp) {
+  return this.set.out(stack(...inp))
+}
+
+window.SCALE = 'e:minor'
+
+window.setScale = (sc) => {
+  window.SCALE = sc
+}
+
+register('sc', (pat) => {
+   return pat.scale(window.SCALE)
+})
+
+register('ifit', (cycles, pat) => {
+  return pat.inside(cycles,fit)
+})
+
+
+//FX
+
+window._comb = register('comb', (inp, pat) => {
+  let [delay, feedback = .6] = [inp].flat()
+  delay = reify(delay).div(100)
+  
+  return pat.FX(K(() => {
+    const d = S(delay);
+    const q = S(feedback);
+    return audioin()
+      .add(x => x.delay(d).mul(q))
+      .add(x => x.delay(2 * d).mul(q * q))
+      .add(x => x.delay(3 * d).mul(q * q * q))
+      .add(x => x.delay(4 * d).mul(q * q * q * q))
+      .out();
+  })).fxr(1)
+});
+
+// SOUNDS
+
+
+registerFunc('noisehat', (seg = 16, modu = tri, speed = 4, min = .05, max = .12) => s('white').seg(seg).dec(modu.fast(4).range(min,max)))
+registerFunc('zap', (amount = .8, speed = .1,note = 'c3', ) => s("sine").penv(reify(amount).mul(120)).note(note).pdec(speed).dec(speed).o(8))
+window.roller = (wt = 0) => s("wt_digi")
+  .wt(wt).wtenv(0).wtdecay(.2).warp(0).warpmode(7).warpenv(.5).warpdec(.1)
+  .dec(.2).lpq(0).dly(.8).room(.7).roomsize(4).diode("1").acidenv(.44)
+
+//THANKS GLOSSING
+window.spinor = (alive = 1, dead = 0) => s("wt_digital").lfo({ dr: 0.05 })
+  .wtrate(alive).unison(3).detune(alive).compressor(-20)
+  .fm(dead).fmh(4)
+  .FX(lpf(200).lpe(4).lpa(0.5).lps(1).K(() => {
+    audioin().sub(x => x.bpf(sine(0.13).mul(S(rand)))).out()
+  }).asym("0.3".mul(dead)), diode(0.7), gain(0.3)).fxr(1)
+
+
+window.roller2 = (acidenv = .5) => {
+  return s("bstab:1:.6,supersaw:1:.6,white:0:.3").detune(rand)
+    .begin("<0 .02>/4").room(.5).acidenv(acidenv).lpq(0).postgain(1.2).diode([2.5,.6])
+  .sustain(.45).dec(.2)
+}
 
 // GLOSSING FUNCTIONS <3 these are pulled from Glossing's repo: 
 // https://codeberg.org/glossing/Strudel_Scripts
