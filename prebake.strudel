@@ -6,6 +6,10 @@ window.registerFunc = (name, func) => {
   window[name] = func
 }
 
+register('pg', (pgain, x) => {
+  return x.mul(postgain(pgain))
+})
+
 window.DX = (env=8, fm = 2, harm = 2) => s("sine")
   .fm(fm).fmenv(env).fmh(harm).fmdecay(.2)
 
@@ -38,6 +42,15 @@ register('o', (orbit, pat) => {
   return pat.hush()
   
 })
+
+register('accent', (accent, pat) => {
+   if (accent == 0) {
+     return pat
+   }
+  return pat.mul(velocity(1 + (accent/8)))
+    .mul(lpenv(1 + (accent /5))).lpd(.13).lpa(.01)
+})
+
 
 //tracker style arrangement
 window.track = function(...input) {
@@ -254,12 +267,11 @@ register('tgate', (amt, cycle,length, pat) => {
   ])
   cycle = reify(cycle)
     .withValue(v => {
-      console.info(v)
     return cycleSubstitute.get(v) ?? v
   })
   amt = reify(amt)
-  return pat.seg(16).degradeBy(amt.mul(-1).add(1))
-    .rib(cycle,length).fill().clip(.7)
+   return pat.struct("x!16".degradeBy(amt.mul(-1).add(1))
+    .rib(cycle,length)).fill().clip(.7)
 })
 
 //increasing the delay increases the feedback as well
@@ -538,11 +550,25 @@ register('stxt', (text, pat) => {
 @example
 $: s("brk").sf(2)
 */
-register('sf', (cycles,x) => {
-  const segments = 16;
+
+Pattern.prototype.sf = function(cycles,segments = 16) {
   cycles = reify(cycles)
-  return x.scrub(saw.seg(cycles.mul(segments)).slow(cycles))
+  return this.scrub(saw.seg(cycles.mul(segments))).slow(cycles)
+    .sustain(1)
+}
+
+register('octave', (oct, pat) => {
+  const transp = (oct - 3) * 12
+  return pat.transpose(transp)
+
 })
+
+//n + defined scale
+Pattern.prototype.nsc = function (pat = 0, oct = 3) {
+  pat = reify(pat)
+  return this.set.out(pat.as("n").sc()).octave(oct);
+};
+
 
 /* swap one value with another
 @example
@@ -583,14 +609,23 @@ window.setScale = (sc) => {
   window.SCALE = sc
 }
 
-register('sc', (pat) => {
-   return pat.scale(window.SCALE)
-})
+// apply the scale state
+Pattern.prototype.sc = function(mode) {
+   let scale = reify(window.SCALE)
+   if (mode != null) {
+     mode = reify(mode)
+     scale =  scale.innerBind(([root]) => {
+       return mode.withValue(m => {
+         return [root,m]
+       })
+     })
+   }
+   return this.scale(scale)
+}
 
 register('ifit', (cycles, pat) => {
-  return pat.inside(cycles,fit)
+  return pat.inside(cycles,fit).slow(cycles).clip(1)
 })
-
 
 // Easy arpeggiating
 /*
@@ -604,14 +639,15 @@ window.trancearp = function(notes,rst = 0 ,rytm = 0) {
   const rstPresets = [
     "F",
     "B",
+    "<F@3 F@3 F@3 F@3 F@2 F@2>*16",
     "F B F B",
     "F@3 B@3 F F",
     "F@12 F@2 F@2",
   ]
   const rytmPresets = [
     "x!16",
+    "<1 1 _ 1 1 1 1 1>*16",
     "<1 1@2 1 1@2 1 1@2 1 1@2 1 1 1 1>*16",
-    "<1 1 _ 1 1 1 1 1>*16"
     
   ]
   
@@ -674,6 +710,77 @@ window.roller2 = (acidenv = .5) => {
     .begin("<0 .02>/4").room(.5).acidenv(acidenv).lpq(0).postgain(1.2).diode([2.5,.6])
   .sustain(.45).dec(.2)
 }
+
+//Custom UI Elements
+
+window.UISlider = function(cb, id, initVal= .5, containerStyle = {}) {
+
+    let sliderContainer = document.getElementById(id)
+    if (sliderContainer) {
+      sliderContainer.remove()
+    }
+    sliderContainer = document.createElement('div');
+    sliderContainer.id =  id;
+  
+  sliderContainer.className = 'right-0 bg-lineHighlight border border-muted'
+  Object.assign(sliderContainer.style, {
+        position: 'fixed',
+        bottom: '40px',
+        zIndex: '9999',
+        padding: '2px 8px',
+        
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '5px',
+       ...containerStyle
+    });
+
+    const label = document.createElement('label');
+    label.innerText = id + ': ' + initVal;
+    
+    label.className = 'text-foreground font-mono'
+
+    const slider = document.createElement('input');
+    slider.type = 'range';
+    slider.min = 0;
+    slider.max = 1;
+    slider.step = 0.01
+    slider.value = initVal;
+    slider.style.cursor = 'pointer';
+
+    slider.addEventListener('input', (e) => {
+      const value = parseFloat(e.target.value)
+        label.innerText = id + ': ' + value;
+         cb(value, e)
+      
+       
+    });
+    
+    sliderContainer.appendChild(label);
+    sliderContainer.appendChild(slider);
+    document.body.appendChild(sliderContainer);
+}
+
+
+window.UISlider(
+  (v, e) => {
+  const controller = getSuperdoughAudioController()
+  const nodes = controller.nodes
+  Array.from(Object.values(nodes)).forEach(node => {
+    node.getDjf?.(v)
+  })
+},
+'djfilt', .5, {right: '144px'})
+
+window.UISlider(
+  (v, e) => {
+  const controller = getSuperdoughAudioController()
+  const nodes = controller.nodes
+  Array.from(Object.values(nodes)).forEach(node => {
+   node.summingNode.gain.setValueAtTime(v, 0)
+  })
+},
+'Volume', .8)
 
 // GLOSSING FUNCTIONS <3 these are pulled from Glossing's repo: 
 // https://codeberg.org/glossing/Strudel_Scripts
