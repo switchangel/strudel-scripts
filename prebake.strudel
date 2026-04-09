@@ -96,15 +96,15 @@ Pattern.prototype.cue = function (cues, cb) {
    
 }
 
-Pattern.prototype.onCue = function(cues) {
+Pattern.prototype.oncue = function(cues, cb) {
   cues = reify(cues)
   return window.getCue().innerBind(c => {
       return cues.innerBind(cues => {
         cues = [cues].flat();
-          if(!cues.includes(c)) {
-            return silence
-          }
-        return this.col(c)
+        if(!cues.includes(c)) {
+            return this
+        }
+        return cb(this.col(c))
         
       })
     
@@ -650,6 +650,45 @@ register('octave', (oct, pat) => {
   return pat.transpose(transp)
 
 })
+
+window.chordshapes = [
+  "0,4",
+  "0,2,4",
+  "0,4,7,9",
+  "0,2,8,9,11",
+  "0,2,7,8,11",
+  "0,2,4,6",
+  "0,4,6,9",
+  "0,4,7,9,13",
+  "0,2,4,6,8",
+  "0,4,8,9,13",
+]
+
+window.chrd = function(c) {
+  c = reify(c)
+  return c.outerBind(c => {
+    const [degree, variation = 0] = [c].flat()
+    const chords = window.chordshapes[Math.min(variation, window.chordshapes.length - 1)]
+    return n(chords).add(n(degree))
+  } )
+}
+
+//@example
+//$: chrd("<0:2!7 2:2!9 -2:2!16 0:7!7 2:7!9 -2:2!16>*8").sc().s("sawtooth")
+//.notearp("<0 3 2 <1 9> 5 6 7>*16")
+register(
+  'notearp',
+  (indices, pat) => pat.arpWith((haps) => reify(indices).fmap((i) => {
+     const transpose = Math.trunc(i / haps.length) * 12
+     let hap = haps[i % haps.length]
+    return hap.withValue(v => { 
+      let note = v.note ?? 'C3'
+      return  {...v, note: noteToMidi(note) + transpose}
+    })
+  })),
+  false,
+);
+
 
 //n + defined scale
 Pattern.prototype.nsc = function (pat = 0, oct = 3) {
