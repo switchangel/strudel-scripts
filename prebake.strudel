@@ -647,17 +647,97 @@ register('octave', (oct, pat) => {
 })
 
 window.chordshapes = [
-  "0,4",
-  "0,2,4",
-  "0,4,7,9",
-  "0,2,8,9,11",
-  "0,2,7,8,11",
-  "0,2,4,6",
-  "0,4,6,9",
-  "0,4,7,9,13",
-  "0,2,4,6,8",
-  "0,4,8,9,13",
-]
+  "0,4",             // [0] Power Chord (1-5)
+  "0,2,4",           // [1] Triad (1-3-5)
+  "-7,0,2,4,7",      // [2] Spread Triad
+  "-7,0,2,3,7",      // [3] Spread Sus4/Triad
+  "0,2,4,6",         // [4] 7th Chord
+  "0,2,3,6",         // [5] Minor 7th Cluster
+  "0,4,7,9",         // [6] Open Triad
+  "0,4,7,8",         // [7] Open Suspended Triad
+  "0,4,6,9",         // [8] Open 7th
+  "0,2,6,9",         // [9] Jazz 10th
+  "0,2,6,10",        // [10] 11th Chord
+  "0,2,4,6,8",       // [11] 9th Chord
+  "-7,0,2,6,9",      // [12] Wide 13th
+  "0,4,7,9,13",      // [13] 6/9 Extended
+  "0,4,8,9,13",      // [14] High Tension Extension
+  "0,2,7,8,11",      // [15] High Cluster A
+  "0,2,8,9,11",      // [16] High Cluster B
+  "-7,0,2,3,7",      // [17] Wide Suspended Spread
+
+  // --- EDM / Melodic House / Future Bass ---
+
+  "0,3,4",           // [18] Sus2 Stack
+  "0,1,4",           // [19] Sus4 Stack
+  "0,2,3,4",         // [20] Dense Triad Cluster
+  "0,2,4,8",         // [21] Add9 Triad
+  "0,2,4,9",         // [22] Add9 + 6
+  "0,4,6,8",         // [23] Soft Major 9
+  "0,2,5,9",         // [24] Dreamy Spread
+  "0,4,7,11",        // [25] Ambient Open Stack
+  "0,7,9,11",        // [26] Fifth + Upper Cluster
+  "0,2,7,11",        // [27] Wide Add9
+  "-7,0,4,7",        // [28] Wide Power Chord
+  "-7,0,4,6",        // [29] Bass + 7th
+  "-7,0,2,9",        // [30] Deep House Voicing
+  "-7,0,4,9",        // [31] Festival House
+  "-7,0,2,4,9",      // [32] Progressive Stack
+  "-7,0,2,4,6,9",    // [33] Full Extended House
+  "-7,0,2,4,8",      // [34] Cinematic Minor Feel
+  "-7,0,3,7,10",     // [35] Suspended Bass Spread
+
+  // --- Future Bass / Porter / Illenium style ---
+
+  "0,2,4,8,11",      // [36] Future Bass Major
+  "0,2,4,6,11",      // [37] Future Bass 11th
+  "0,2,4,9,11",      // [38] Bright Emotional Stack
+  "0,2,6,9,11",      // [39] Lush Extended
+  "0,4,6,8,11",      // [40] Wide Emotional Cluster
+  "0,2,3,7,11",      // [41] Hybrid Cluster
+  "0,1,4,8,11",      // [42] Tension Pad
+  "0,1,2,4,11",      // [43] Massive Cluster
+  "0,2,4,5,9",       // [44] Organic Pad Chord
+  "0,4,5,9,11",      // [45] Shimmer Stack
+
+  // --- Techno / Minimal / Darker voicings ---
+
+  "0,1,4,7",         // [46] Dark Cluster
+  "0,1,3,7",         // [47] Minor Cluster
+  "0,4,5,7",         // [48] Tight Open Chord
+  "0,5,7",           // [49] Quartal Stack
+  "0,5,7,10",        // [50] Quartal 7th
+  "0,5,10",          // [51] Hollow Fifth Stack
+  "-7,0,5,7",        // [52] Wide Quartal
+  "-7,0,1,5",        // [53] Dark Bass Cluster
+  "-7,-3,0,5",       // [54] Industrial Spread
+  "0,1,5,8",         // [55] Acid Tension
+  "0,3,5,8",         // [56] Suspended Dark Chord
+
+  // --- Trance / Uplifting / Big room ---
+
+  "0,2,4,7",         // [57] Big Room Add9
+  "0,4,7,11,14",     // [58] Epic Trance Stack
+  "-7,0,2,4,7,11",   // [59] Huge Spread Stack
+  "0,2,4,6,9,11",    // [60] Full Atmospheric
+  "0,7,11,14",       // [61] Anthem Lead Stack
+  "0,2,9,11,14",     // [62] Emotional Supersaw
+  "-12,0,4,7,11",    // [63] Cinematic Wide Chord
+  "-12,-7,0,4,7",    // [64] Massive Octave Spread
+
+  // --- Experimental / modern electronic ---
+
+  "0,1,2",           // [65] Chromatic Cluster
+  "0,1,2,4",         // [66] Dense Modern Cluster
+  "0,2,3,5,8",       // [67] Floating Ambience
+  "0,4,5,8,9",       // [68] Unresolved Texture
+  "0,2,5,7,11",      // [69] Quartal Hybrid
+  "0,3,7,10,14",     // [70] Cinematic Minor 9
+  "0,2,4,7,9,11",    // [71] Full Lydian Stack
+  "0,1,4,6,11",      // [72] Tension Wash
+  "0,2,6,7,11",      // [73] Poly Cluster
+  "0,4,8,11,14",     // [74] Bright Modern Extension
+];
 
 window.chrd = function(c) {
   c = reify(c)
