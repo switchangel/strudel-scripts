@@ -46,30 +46,26 @@ register('o', (orbit, pat) => {
 Pattern.prototype.col = function(col) {
   const colors = [
     "#50d1f8",
+    "#E91E63",
     "#8EDF5F",
     "#995CD0",
     "#EC7744",
     "#5549B7",
-    "#201D30",
+    "#F9E03D",
+    
   ]
-  if (typeof col === 'number') {
-    // if (col === 0) {
-    //   return this
-    // }
-    // col = col - 1
-    col = colors[col % colors.length]
-  }
-  return this.color(col)
+   col = reify(col)
+  const color = pick(colors,col)
+  return this.color(color)
   
 }
 
 window.CUE = "0"
 
 window.cue = function (...inp) {
-  const index = Math.min(window.CUE, inp.length -1)
-  
-  return  reify(inp[index]).col(index)
+  return pick(inp, window.CUE)
 }
+
 window.getCue = () => window.CUE
 window.setCue = function(cue) {
   window.CUE = reify(cue)
@@ -476,9 +472,8 @@ register('acid', (pat) => {
     .lpq(12)
 })
 
-//stext
 //transform text input into synthesis!
-register('stxt', (text, pat) => {
+window.stxt = register('stxt', (text, pat) => {
   const RANGE = 'range'
   const SELECTION = 'selection'
 
