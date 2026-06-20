@@ -406,46 +406,85 @@ register('vstruct', (ipat,pat) => {
   })
 },false)
 
-// sets my Ableton vocoder CC key to the specified value, probably only useful for me
 
-window.voc = (key) => {
-    let value;
-    switch (key.toLowerCase()) {
-    case 'c': value = 0; break;
-    case 'c#': value = 0.2; break;
-    case 'd': value = 0.25; break;
-    case 'd#': value = 0.3; break;
-    case 'e': value = 0.4; break;
-    case 'f': value = 0.5; break;
-    case 'f#': value = 0.6; break;
-    case 'g': value = 0.7; break;
-    case 'g#': value = 0.75; break;
-    case 'a': value = 0.8; break;
-    case 'a#': value = 0.9; break;
-    case 'b': value = 1; break;
-    default: value = 0; // fallback value if key is not recognized
+window.key_to_cc_value_for_autotune = function(key) {
+//BX crispy
+//   const noteMap = new Map([
+//   ['c', 0],
+//   ['c#', 0.2],
+//   ['d', 0.25],
+//   ['d#', 0.3],
+//   ['e', 0.4],
+//   ['f', 0.5],
+//   ['f#', 0.6],
+//   ['g', 0.7],
+//   ['g#', 0.75],
+//   ['a', 0.8],
+//   ['a#', 0.9],
+//   ['b', 1]
+// ]);
+
+ //waves harmonizer
+  const noteMap = new Map([
+  ['f#', 0],
+  ['g', 0.1],
+  ['g#', 0.2],
+  ['a', 0.3],
+  ['a#', 0.4],
+  ['b', 0.45],
+  ['c', 0.5],
+  ['c#', 0.6],
+  ['d', 0.7],
+  ['d#', 0.8],
+  ['e', 0.9],
+  ['f', 0.97],
+]);
+
+ const normalizedKey = key.toLowerCase();
+ return noteMap.has(normalizedKey) ? noteMap.get(normalizedKey) : 0;
+}
+
+window.toMajorKey = function(input) {
+const NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+
+const SCALE_TO_MAJOR_OFFSET = {
+  major: 0,
+  minor: 3,      // Aeolian → relative major
+  phrygian: 3,
+  locrian: 1,
+  pentatonic: 0,
+};
+  
+  const [root, scale = "major"] = Array.isArray(input)
+    ? input
+    : [input, "major"];
+
+  const noteIndex = NOTES.indexOf(root.toUpperCase());
+
+  if (noteIndex === -1) {
+    throw new Error(`Unknown note: ${root}`);
   }
 
+  const offset = SCALE_TO_MAJOR_OFFSET[scale.toLowerCase()] ?? 0;
+
+  return NOTES[(noteIndex + offset) % 12];
+}
+
+
+// sets my vocoder CC key to the specified value, probably only useful for me
+window.voc = (key) => {
+  key = reify([key ?? window.SCALE].flat())
+  const value = key.withValue(v => {
+    const majorKey = toMajorKey(v) 
+     return key_to_cc_value_for_autotune(majorKey)
+
+  })
+ // const value = key_to_cc_value_for_autotune(key)
   return s("white").gain(0).ccn(34).ccv(value).midi('tout');
 }
-register('voc', (key, x) => {
-  let value;
-  switch (key.toLowerCase()) {
-    case 'c': value = 0; break;
-    case 'c#': value = 0.2; break;
-    case 'd': value = 0.25; break;
-    case 'd#': value = 0.3; break;
-    case 'e': value = 0.4; break;
-    case 'f': value = 0.5; break;
-    case 'f#': value = 0.6; break;
-    case 'g': value = 0.7; break;
-    case 'g#': value = 0.75; break;
-    case 'a': value = 0.8; break;
-    case 'a#': value = 0.9; break;
-    case 'b': value = 1; break;
-    default: value = 0; // fallback value if key is not recognized
-  }
 
+register('voc', (key, x) => {
+   const value = key_to_cc_value_for_autotune(key)
   return x.ccn(34).ccv(value).midi('tout');
 });
 
@@ -456,7 +495,7 @@ register('fmtime', (start,length, pat) => {
 
 window.irando = (ipat) => reify(ipat).fmap(_irand).outerJoin()
 
-window.randm = (division) => irand(division).div(16)
+window.randm = (division) => irand(division).div(division)
 window.pk = function (...args) {
   const control = args.length > 2 ? args.pop() : 0
   return pick(args, control)
@@ -834,7 +873,7 @@ register('ifit', (cycles, pat) => {
 @example
 $: n(trancearp("<0:2:6@3 2:4:8>", "F@5 B@3", "<1 1 1@2 1 1@2 1>*16"))
   .acidenv(trancearp(".4:.5:.7", "F B", "<1!3 1@3 1!2>*16"))
-  .scale("g:minor").delay(.6)≥
+  .scale("g:minor").delay(.6)
   .s("sawtooth")
 */
 window.trancearp = function(notes,rst = 0 ,rytm = 0) {
@@ -888,6 +927,27 @@ window._comb = register('comb', (inp, pat) => {
       .out();
   })).fxr(1)
 });
+
+Pattern.prototype.min = function(min) {
+  return this.withValue(v => {
+    return v > min ? v : min
+  })
+}
+Pattern.prototype.max = function(max) {
+  return this.withValue(v => {
+    return v < max ? v : max
+  })
+}
+
+window.flood = register('flood', (amt,pat) => {
+  amt = reify(amt)
+  return pat
+   .room(amt.mul(1.1))
+   .dry(amt.mul(-2).add(2).min(0).max(1))
+})
+
+
+
 
 // SOUNDS
 
@@ -1196,7 +1256,7 @@ $: s("supersaw").detune(0.4).room(0.4).note("F1")
   .bend("<0 2 12@2 24 0 7 36>*16", "0 0.3", "0.3 0")
 */
 const __semitoneBend = Math.pow(2, 1 / 12);
-Pattern.prototype.bend = function (bends = 0, speedUp = 0.05, speedDown = 0.05) {
+Pattern.prototype.bend = function (bends = 0, speedUp = 0.1, speedDown = 0.3) {
   window.__legatoBusID ??= 0;
   const uuid = window.__legatoBusID++;
   bends = reify(bends);
@@ -1218,3 +1278,48 @@ Pattern.prototype.bend = function (bends = 0, speedUp = 0.05, speedDown = 0.05) 
   return this.bmod({ c: 's', b: uuid, dr: 1 });
 }
 
+window.disperse = register('disperse', (inp, pat) => {
+   return pat.FX(K(() => {
+      let [
+       a = .4, //amount
+       s = .9, //size
+       r = 0.05,// rate
+       d = 0.5, //depth
+      ] = [S(inp)].flat()
+    const x = audioin();
+    const t = 0.001 + 0.024 * s;
+    const lfo1 = sine(r).mul(0.5).add(0.5);
+    const lfo2 = sine(1.7 * r).mul(0.5).add(0.5);
+
+    const t1 = lfo1.mul(2).sub(1).mul(d).add(1).mul(t);
+    const t2 = lfo2.mul(2).sub(1).mul(d).add(1).mul(t);
+
+    const low  = x.lpf(0.25);
+    const mid  = x.bpf(0.5, 0.6);
+    const high = x.hpf(0.7);
+
+    const dl1 = low .delay(t1).mul(lfo1.mul(2).sub(1).mul(0.15).add(0.7));
+    const dm1 = mid .delay(t2.mul(0.8)).mul(lfo2.mul(2).sub(1).mul(0.2).add(0.8));
+    const dh1 = high.delay(t1.mul(0.6)).mul(lfo1.mul(2).sub(1).mul(0.15).add(0.6));
+    const dl2 = low.delay(t2.mul(1.9)).mul(-0.45);
+    const dm2 = mid.delay(t1.mul(1.6)).mul(-0.55);
+    const dm3 = mid.delay(t2.mul(2.4)).mul(0.35);
+    const dh2 = high.delay(t2.mul(1.3)).mul(-0.4);
+
+    let y = low.add(dl1).add(dl2)
+      .add(mid.add(dm1).add(dm2).add(dm3))
+      .add(high.add(dh1).add(dh2));
+
+    y = y.add(y.delay(t1.mul(2.7)).mul(0.25 * a));
+
+    const pi = 3.14159265;
+    const norm = 2 / pi;
+    y = atan(y.mul(1.7)).mul(norm);
+
+    const dry = x.mul(1 - a);
+    const wet = y.mul(a);
+    return dry.add(wet).out();
+  }));
+  
+  
+})
