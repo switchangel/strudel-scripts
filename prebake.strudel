@@ -445,7 +445,7 @@ window.key_to_cc_value_for_autotune = function(key) {
 }
 
 window.toMajorKey = function(input) {
-const NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
 const SCALE_TO_MAJOR_OFFSET = {
   major: 0,
@@ -455,15 +455,12 @@ const SCALE_TO_MAJOR_OFFSET = {
   pentatonic: 0,
 };
   
-  const [root, scale = "major"] = Array.isArray(input)
+  const [root, scale = 'major'] = Array.isArray(input)
     ? input
-    : [input, "major"];
+    : [input, 'major'];
 
-  const noteIndex = NOTES.indexOf(root.toUpperCase());
 
-  if (noteIndex === -1) {
-    throw new Error(`Unknown note: ${root}`);
-  }
+  const noteIndex = NOTES.indexOf(root.toUpperCase()) ?? 0;
 
   const offset = SCALE_TO_MAJOR_OFFSET[scale.toLowerCase()] ?? 0;
 
@@ -471,10 +468,11 @@ const SCALE_TO_MAJOR_OFFSET = {
 }
 
 
-// sets my vocoder CC key to the specified value, probably only useful for me
+// // sets my vocoder CC key to the specified value, probably only useful for me
 window.voc = (key) => {
-  key = reify([key ?? window.SCALE].flat())
+  key = reify(key ?? window.SCALE)
   const value = key.withValue(v => {
+    v = [v].flat()
     const majorKey = toMajorKey(v) 
      return key_to_cc_value_for_autotune(majorKey)
 
