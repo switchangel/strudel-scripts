@@ -1021,16 +1021,16 @@ window.UISlider = function(cb, id, initVal= .5, containerStyle = {}) {
     document.body.appendChild(sliderContainer);
 }
 
-
-window.UISlider(
-  (v, e) => {
-  const controller = getSuperdoughAudioController()
-  const nodes = controller.nodes
-  Array.from(Object.values(nodes)).forEach(node => {
-    node.getDjf?.(v)
-  })
-},
-'djfilt', .5, {right: '144px'})
+// Control the orbit Filter with a UI slider
+// window.UISlider(
+//  (v, e) => {
+//  const controller = getSuperdoughAudioController()
+//  const nodes = controller.nodes
+//  Array.from(Object.values(nodes)).forEach(node => {
+//    node.getDjf?.(v)
+//  })
+// },
+// 'djfilt', .5, {right: '144px'})
 
 window.UISlider(
   (v, e) => {
