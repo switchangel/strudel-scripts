@@ -944,7 +944,14 @@ window.flood = register('flood', (amt,pat) => {
    .dry(amt.mul(-2).add(2).min(0).max(1))
 })
 
-
+// rolling snare build thing
+window.roll = (index = 0) => {
+  index = reify(index)
+  return stack(
+    s("dsd:1").vstruct(pk("<1 0 0 0>*16","<1 0 0 1 0 0 1 0>*16","<1 0 1 0>*16","<1>*16",  index)),
+    s("dsd").vstruct("<.6 .6 .6 .5>*16").dec(.3)
+  ).pg(.8)
+}
 
 
 // SOUNDS
@@ -955,6 +962,18 @@ registerFunc('zap', (amount = .8, speed = .1,note = 'c3', ) => s("sine").penv(re
 window.roller = (wt = 0) => s("wt_digi")
   .wt(wt).wtenv(0).wtdecay(.2).warp(0).warpmode(7).warpenv(.5).warpdec(.1)
   .dec(.2).lpq(0).dly(.8).room(.7).roomsize(4).diode("1").acidenv(.44)
+
+// that sound from annhialation
+window.protobass = () => {
+  return s("wt_ana:1").unison(5)
+  .wtsync(1.2)
+  .sb(.05, x => x.stretch("1 | .5 | 2").seg(8))
+  .sb(.13, x => x.dly(.8).delaytime(".01 | .15 | .05".seed(3)).delayfeedback(".9") ) 
+  .glide(.1).detune(rand.mul(1.5)).diode("2.5:.4").acidenv(.2)
+  .lpsync("[3 16] 8").lpdepth(5).lpq(0).room(0).roomsize(4).fm(1.4).fmh(2.04)
+  .lpskew(rand)
+}
+
 
 //THANKS GLOSSING
 window.spinor = (alive = 1, dead = 0) => s("wt_digital").lfo({ dr: 0.05 })
@@ -967,8 +986,8 @@ window.spinor = (alive = 1, dead = 0) => s("wt_digital").lfo({ dr: 0.05 })
 
 window.roller2 = (acidenv = .5) => {
   return s("bstab:1:.6,supersaw:1:.6,white:0:.3").detune(rand)
-    .begin("<0 .02>/4").room(.5).acidenv(acidenv).lpq(0).postgain(1.2).diode([2.5,.6])
-  .sustain(.45).dec(.2)
+    .begin("<0 .02>/4").room(.5).acidenv(acidenv).lpq(0).diode([2.5,.6])
+  .sustain(.45).dec(.2).pg(.7)
 }
 
 //Custom UI Elements
